@@ -1,5 +1,5 @@
 // import { useNavigate } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Dashboard.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
@@ -10,15 +10,63 @@ function Dashboard() {
     const [file, setFile] = useState();
     const [dragging, setDragging] = useState(false);
     const [content, setContent] = useState();
+    const [data, setData] = useState([]);
+    const [summaries, setSummaries] = useState([]);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const response = await fetch('/hackathon_stories.json');
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            const jsonData = await response.json();
+            const summaries = Object.values(jsonData).map(story => {
+                const summaryMatch = story.match(/\*\*Summary:\*\*(.*?)\n/)
+                const userStoryMatch = story.match(/\*\*User Story:\*\*(.*?)\n/);
+                const userStory1Match = story.match(/\*\*User Story 1:\*\*(.*?)\n/);
+                const summary = summaryMatch ? summaryMatch[1].trim() : '';
+                const userStory = userStoryMatch ? userStoryMatch[1].trim() : '';
+                const userStory1 = userStory1Match ? userStory1Match[1].trim() : '';
+
+                // return summaryMatch ? summaryMatch[1].trim() : ''; // Return empty string if summary is not found
+                return { summary, userStory, userStory1  };
+            });
+            setSummaries(summaries);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
+    function showuserStories() {
+        if (summaries.length === 0) {
+            alert("No data available. Please fetch data first.");
+            return;
+        }
+        if (!Array.isArray(data)) {
+            console.error("Data is not an array:", data);
+            return;
+        }
+        var headingElement = document.getElementById("xyz");
+        var htmlContent = "<ul>";
+        summaries.forEach(({ summary, userStory, userStory1 }) => {
+            htmlContent += "<strong style={{ marginRight: '5px' }}>User Story</strong></br>";
+            // htmlContent += "<li><strong>User Story 1:</strong> " + userStory1 + "</li>";
+            htmlContent += "<strong>Summary:</strong> " + summary +"</br>"
+        });
+        htmlContent += "</ul>";
+        headingElement.innerHTML = htmlContent;
+    }
 
     const handleChange = (e) => {
-      setContent(e.target.value);
+        setContent(e.target.value);
     };
-  
 
     function functionality(event) {
         event.preventDefault();
-
         //     // Check if the fileInput element exists
         //     const fileInput = document.getElementById("fileInput");
         //     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
@@ -60,24 +108,8 @@ function Dashboard() {
         var headingElement = document.getElementById("xyz");
         // alert("Submitted file: " + file.name);
         // Modifying the content of the heading element
-        headingElement.innerHTML =""
-        
-}
-
-    function showuserStories() {
-        const fileInput = document.getElementById("fileInput");
-        if (!file || !file.name) {
-            alert("Please select a file to generate a story.");
-            return;
-        }
-
-        var headingElement = document.getElementById("xyz");
-        // Modifying the content of the heading element
-        headingElement.innerHTML =
-            "Summary : User can log into their account <br/>" +
-            "Description: as a user , i wnt to able to login to my account so that I can ";
+        headingElement.innerHTML = ""
     }
-
     function deleteFile() {
         setFile(null);
     }
@@ -134,12 +166,12 @@ function Dashboard() {
                         border: 'none', marginBottom: '9px', borderRadius: '10px',
                         width: '17rem', marginLeft: '2px', fontWeight: 'bold'
                     }} onClick={(e) => showuserStories()}>User Stories</button>
-                    <div id='xyz' style={{ height: '21rem', width: '35rem', backgroundColor: 'white', marginLeft: '3%', fontSize: '15px', overflowY: 'auto', top: '50px' }}>
+                    <div id='xyz' style={{ height: '21rem', width: '35rem', backgroundColor: 'white', marginLeft: '3%', fontSize: '15px', overflowY: 'auto', overflowX: 'scroll', top: '50px' }}>
                         <textarea
                             style={{ width: '100%', height: '100%', border: 'none', resize: 'none' }}
                             value={content}
                             onChange={handleChange}
-                            readOnly 
+                            readOnly
                         />
 
                     </div>
