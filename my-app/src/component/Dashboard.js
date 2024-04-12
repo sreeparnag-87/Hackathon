@@ -26,14 +26,10 @@ function Dashboard() {
             const jsonData = await response.json();
             const summaries = Object.values(jsonData).map(story => {
                 const summaryMatch = story.match(/\*\*Summary:\*\*(.*?)\n/)
-                const userStoryMatch = story.match(/\*\*User Story:\*\*(.*?)\n/);
-                const userStory1Match = story.match(/\*\*User Story 1:\*\*(.*?)\n/);
                 const summary = summaryMatch ? summaryMatch[1].trim() : '';
-                const userStory = userStoryMatch ? userStoryMatch[1].trim() : '';
-                const userStory1 = userStory1Match ? userStory1Match[1].trim() : '';
-
+               
                 // return summaryMatch ? summaryMatch[1].trim() : ''; // Return empty string if summary is not found
-                return { summary, userStory, userStory1  };
+                return { summary };
             });
             setSummaries(summaries);
         } catch (error) {
@@ -42,6 +38,11 @@ function Dashboard() {
     };
 
     function showuserStories() {
+        if (!file || !file.name) {
+            alert("Please select a file to generate a story.");
+            return;
+        }
+
         if (summaries.length === 0) {
             alert("No data available. Please fetch data first.");
             return;
@@ -52,8 +53,8 @@ function Dashboard() {
         }
         var headingElement = document.getElementById("xyz");
         var htmlContent = "<ul>";
-        summaries.forEach(({ summary, userStory, userStory1 }) => {
-            htmlContent += "<strong style={{ marginRight: '5px' }}>User Story</strong></br>";
+        summaries.forEach(({ summary}) => {
+            // htmlContent += "<strong style={{ marginRight: '5px' }}>User Story</strong></br>";
             // htmlContent += "<li><strong>User Story 1:</strong> " + userStory1 + "</li>";
             htmlContent += "<strong>Summary:</strong> " + summary +"</br>"
         });
