@@ -12,6 +12,7 @@ function Dashboard() {
     const [content, setContent] = useState();
     const [data, setData] = useState([]);
     const [summaries, setSummaries] = useState([]);
+    const [keys, setKeys] = useState([]);
 
     useEffect(() => {
         fetchData();
@@ -24,6 +25,9 @@ function Dashboard() {
                 throw new Error('Failed to fetch data');
             }
             const jsonData = await response.json();
+            // Extract keys from the JSON object and set them in state
+            const keys = Object.keys(jsonData);
+            setKeys(keys);
             const summaries = Object.values(jsonData).map(story => {
                 const summaryMatch = story.match(/\*\*Summary:\*\*(.*?)\n/)
                 const summary = summaryMatch ? summaryMatch[1].trim() : '';
@@ -52,12 +56,11 @@ function Dashboard() {
             return;
         }
         var headingElement = document.getElementById("xyz");
-        var htmlContent = "<ul>";
-        summaries.forEach(({ summary}) => {
-            // htmlContent += "<strong style={{ marginRight: '5px' }}>User Story</strong></br>";
-            // htmlContent += "<li><strong>User Story 1:</strong> " + userStory1 + "</li>";
-            htmlContent += "<strong>Summary:</strong> " + summary +"</br>"
-        });
+        var htmlContent = "<ul>";                
+                keys.forEach((key, index) => {
+                    htmlContent += "<li style='list-style-type: none; margin-left: 0; padding-left: 0; text-align: left; margin-top:8px'><strong>" + key + ":</strong> " + summaries[index].summary + "</li>";
+                });
+        
         htmlContent += "</ul>";
         headingElement.innerHTML = htmlContent;
     }
