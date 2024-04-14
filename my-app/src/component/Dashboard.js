@@ -5,6 +5,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 function Dashboard() {
     // const navigate = useNavigate();
     const [file, setFile] = useState();
@@ -13,14 +15,19 @@ function Dashboard() {
     const [data, setData] = useState([]);
     const [summaries, setSummaries] = useState([]);
     const [keys, setKeys] = useState([]);
+    //const [collapsedSummaries, setCollapsedSummaries] = useState([]);
+    const [expandedSummaries, setExpandedSummaries] = useState({});
+    const [collapsedSummaries, setCollapsedSummaries] = useState(Array(summaries.length).fill(true));
 
     useEffect(() => {
         fetchData();
     }, []);
 
+
+
     const fetchData = async () => {
         try {
-            const response = await fetch('/hackathon_stories.json');
+            const response = await fetch('/response.json');
             if (!response.ok) {
                 throw new Error('Failed to fetch data');
             }
@@ -28,25 +35,32 @@ function Dashboard() {
             // Extract keys from the JSON object and set them in state
             const keys = Object.keys(jsonData);
             setKeys(keys);
-            const summaries = Object.values(jsonData).map(story => {
-                const summaryMatch = story.match(/\*\*Summary:\*\*(.*?)\n/)
-                const summary = summaryMatch ? summaryMatch[1].trim() : '';
-               
-                // return summaryMatch ? summaryMatch[1].trim() : ''; // Return empty string if summary is not found
-                return { summary };
-            });
+            const summaries = keys.map(key => ({
+                acceptance: (jsonData[key].Acceptance || '').trim(),
+                assignee: (jsonData[key].Assignee || '').trim(),
+                description: (jsonData[key].Description || '').trim(),
+                epic: (jsonData[key]['Epic/Theme'] || '').trim(),
+                label: (jsonData[key]['Labels/Tags'] || '').trim(),
+                issue: (jsonData[key]['Linked Issues'] || '').trim(),
+                priority: (jsonData[key].Priority || '').trim(),
+                spoints: (jsonData[key]['Story Points'] || '').trim(),
+                title: (jsonData[key].Title || '').trim(),
+                summary: (jsonData[key].Summary || '').trim(),
+            }));
             setSummaries(summaries);
+            setCollapsedSummaries(Array(summaries.length).fill(true));
+
         } catch (error) {
             console.error('Error fetching data:', error);
         }
-    };
+    }
 
     function showuserStories() {
         if (!file || !file.name) {
             alert("Please select a file to generate a story.");
             return;
         }
-
+    
         if (summaries.length === 0) {
             alert("No data available. Please fetch data first.");
             return;
@@ -55,37 +69,63 @@ function Dashboard() {
             console.error("Data is not an array:", data);
             return;
         }
+    
         var headingElement = document.getElementById("xyz");
-        var htmlContent = "<ul>";                
-                keys.forEach((key, index) => {
-                    htmlContent += "<li style='list-style-type: none; margin-left: 0; padding-left: 0; text-align: left; margin-top:8px'><strong>" + key + ":</strong> " + summaries[index].summary + "</li>";
-                });
-        
+        var htmlContent = "<ul>";
+    
+        summaries.forEach((summary,index,key) => {
+            const currentKey = keys[index];
+            // Add list item
+            htmlContent += `<li style='list-style-type: none; margin-left: 0; padding-left: 0; text-align: left; margin-top:8px'><strong>${String(currentKey)}:</strong>${summaries[index].summary} </li>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="false" aria-controls="collapse${index}"><br>
+                        <b><i>  See more...</b></i>
+                        </button>
+                    </h2>
+                    <br>
+                    <div id="collapse${index}" class="accordion-collapse collapse" aria-labelledby="heading${index}" data-bs-parent="#accordionExample">
+                <div style="margin-left: 0; padding-left: 0; text-align: left" class="accordion-body">
+                   <strong>Acceptance: </strong>${summaries[index].acceptance}<br>
+                   <strong>Summary: </strong> ${JSON.stringify(summaries[index].summary)}<br>
+                   <strong>Description: </strong>   ${summaries[index].description}<br>
+                   <strong>Assignee: </strong>   ${summaries[index].assignee}<br>
+                   <strong>Epic/Theme: </strong>   ${summaries[index].epic}<br>
+                   <strong>Labels/Tags: </strong>   ${summaries[index].label}<br>
+                   <strong>Linked Issues: </strong>   ${summaries[index].issue}<br>
+                   <strong>Priority: </strong>   ${summaries[index].priority}<br>
+                   <strong>Story Points: </strong>   ${summaries[index].spoints}<br>
+                   <strong>Title: </strong>   ${summaries[index].title}<br>
+
+                        </div>
+                    </div>
+                </div>
+                <br>
+            `;
+        });
+    
         htmlContent += "</ul>";
         headingElement.innerHTML = htmlContent;
     }
-
+    
     const handleChange = (e) => {
         setContent(e.target.value);
     };
 
     function functionality(event) {
         event.preventDefault();
-        //     // Check if the fileInput element exists
-        //     const fileInput = document.getElementById("fileInput");
-        //     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        //         alert("Please select a file to generate a story.");
-        //         return;
-        //     }
+        try {
+            if (!file || !file.name) {
+                alert("Please select a file to generate a story.");
+                return;
+            }
 
-        //     const selectedFile = fileInput.files[0];
-        // setFile(selectedFile);
-        // alert("Submitted file: " + selectedFile.name);
-        if (!file || !file.name) {
-            alert("Please select a file to generate a story.");
-            return;
+            alert("Submitted file: " + file.name)
+        } catch (error) {
+            console.error('Error:', error);
+            // Handle any errors here
         }
-        alert("Submitted file: " + file.name)
     }
     function handleDragOver(e) {
         e.preventDefault();

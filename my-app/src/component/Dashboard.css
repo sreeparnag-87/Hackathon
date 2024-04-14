@@ -56,3 +56,11 @@ body {
 .multiplefiles{
   margin-right: 19%;
 }
+.user-story-item {
+  list-style-type: none;
+  margin-left: 0;
+  padding-left: 0;
+  text-align: left;
+  margin-top: 8px;
+  cursor: pointer;
+}
